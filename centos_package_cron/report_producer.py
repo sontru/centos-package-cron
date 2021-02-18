@@ -18,7 +18,8 @@ class ReportProducer:
                  checker=None,
                  annoyance_fetcher=None,
                  db_session_fetch=None,
-                 include_depends_on=None):
+                 include_depends_on=None,
+                 clog=False):
         self.executor = MockableExecute()
         self.pkg_fetcher = pkg_fetcher or PackageFetcher(ChangeLogParser(), self.executor, repos_to_exclude_list, repos_to_include_list)
         self.checker = checker or PackageChecker(ErrataFetcher(), self.pkg_fetcher, OsVersionFetcher())
@@ -160,7 +161,7 @@ class ReportProducer:
             email_body += u"\n"
         return email_body
 
-    def get_report_content(self):
+    def get_report_content(self,clog):
         email_body = u''
         with self.db_session_fetch as session:
             self.annoyance_check = self.annoyance_fetcher.fetch(session)
@@ -170,7 +171,8 @@ class ReportProducer:
             general_updates = self._get_general_updates()
             email_body = self._add_general_updates_to_email(general_updates, email_body)
             email_body = self._handle_section_boundary(email_body)
-            email_body = self._add_changelogs_to_email(general_updates, email_body)
+            if clog:
+                email_body = self._add_changelogs_to_email(general_updates, email_body)
 
         self.annoyance_check = None
         return email_body
