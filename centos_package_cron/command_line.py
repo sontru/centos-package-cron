@@ -30,7 +30,11 @@ def main():
     skipold = not args.forceold
     producer = ReportProducer(repos_to_exclude_list, repos_to_include_list, skipold, args.skip_sqlite_file_path, include_depends_on=args.include_depends_on)
 
-    report_content = producer.get_report_content_as_json() if args.json else producer.get_report_content()
+    if args.changelog:
+        changelog = True
+    else:
+        changelog = False
+    report_content = producer.get_report_content_as_json() if args.json else producer.get_report_content(changelog)
 
     if report_content != '':
         if args.output == 'stdout':
@@ -46,6 +50,10 @@ def main():
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Emails administrators with CentOS security updates and changelogs of non-security updates. Version %s" % __VERSION__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+    parser.add_argument('-c','--changelog',
+    help='Output changelog',
+    action="store_true")
 
     parser.add_argument('-e', '--email_to',
     type=str,
